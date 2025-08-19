@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaCare - Pharmacy Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar-active {
+            background-color: #1d4ed8;
+            color: white;
+        }
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Menu Toggle -->
+    <button id="menuToggle" class="fixed top-4 left-4 z-50 lg:hidden bg-blue-600 text-white p-2 rounded-md">
+        <i class="bi bi-list text-xl"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar w-64 h-screen bg-white shadow-lg fixed left-0 top-0 z-40">
+        <div class="p-4">
+            <h1 class="text-2xl font-bold text-blue-600">PharmaCare</h1>
+        </div>
+        <nav class="mt-6">
+            <a href="#dashboard" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50 sidebar-active">
+                <i class="bi bi-speedometer2 mr-3"></i> Dashboard
+            </a>
+            <a href="#sales" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50">
+                <i class="bi bi-cart mr-3"></i> Sales
+            </a>
+            <a href="#purchases" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50">
+                <i class="bi bi-bag mr-3"></i> Purchases
+            </a>
+            <a href="#inventory" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50">
+                <i class="bi bi-box mr-3"></i> Inventory
+            </a>
+            <a href="#reports" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50">
+                <i class="bi bi-file-text mr-3"></i> Reports
+            </a>
+            <a href="#customers" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50">
+                <i class="bi bi-people mr-3"></i> Customers
+            </a>
+            <a href="#settings" class="sidebar-link flex items-center px-4 py-3 hover:bg-blue-50">
+                <i class="bi bi-gear mr-3"></i> Settings
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 p-8" id="mainContent">
+        <!-- Top Navbar -->
+        <div class="flex justify-end mb-8">
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <button class="flex items-center space-x-2 bg-white p-2 rounded-md">
+                        <i class="bi bi-person-circle text-xl"></i>
+                        <span>John Doe</span>
+                    </button>
+                </div>
+                <button class="bg-red-500 text-white px-4 py-2 rounded-md">
+                    <i class="bi bi-box-arrow-right mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboardContent">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-gray-500 text-sm">Today's Sales</h3>
+                    <p class="text-2xl font-bold">$2,584</p>
+                    <div class="text-green-500 text-sm mt-2">
+                        <i class="bi bi-arrow-up"></i> 12% from yesterday
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-gray-500 text-sm">Monthly Revenue</h3>
+                    <p class="text-2xl font-bold">$47,589</p>
+                    <div class="text-green-500 text-sm mt-2">
+                        <i class="bi bi-arrow-up"></i> 8% from last month
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-gray-500 text-sm">Low Stock Items</h3>
+                    <p class="text-2xl font-bold">23</p>
+                    <div class="text-red-500 text-sm mt-2">
+                        Requires attention
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-gray-500 text-sm">Expiring Soon</h3>
+                    <p class="text-2xl font-bold">15</p>
+                    <div class="text-yellow-500 text-sm mt-2">
+                        Within 30 days
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Sales Overview</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold mb-4">Top Selling Products</h3>
+                    <canvas id="productsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Recent Transactions</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Products</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <!-- Sample rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading" id="loadingSpinner">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Navigation handling
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('sidebar-active'));
+                e.currentTarget.classList.add('sidebar-active');
+            });
+        });
+
+        // Sample data for charts
+        const salesData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Sales ($)',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                borderColor: '#1d4ed8',
+                tension: 0.4
+            }]
+        };
+
+        const productsData = {
+            labels: ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'],
+            datasets: [{
+                label: 'Units Sold',
+                data: [300, 250, 200, 150, 100],
+                backgroundColor: ['#1d4ed8', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe']
+            }]
+        };
+
+        // Initialize charts
+        new Chart(document.getElementById('salesChart'), {
+            type: 'line',
+            data: salesData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('productsChart'), {
+            type: 'doughnut',
+            data: productsData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+
+        // Initialize with some sample transaction data
+        const transactions = [
+            { id: '#1234', customer: 'John Smith', products: 'Paracetamol, Vitamin C', amount: '$45.00', status: 'Completed' },
+            { id: '#1235', customer: 'Jane Doe', products: 'Antibiotics', amount: '$85.00', status: 'Processing' },
+            { id: '#1236', customer: 'Mike Johnson', products: 'Blood Pressure Meds', amount: '$120.00', status: 'Completed' }
+        ];
+
+        const tbody = document.querySelector('tbody');
+        transactions.forEach(tx => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${tx.id}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tx.customer}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tx.products}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${tx.amount}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        ${tx.status === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                        ${tx.status}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
